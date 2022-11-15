@@ -43,7 +43,7 @@ export function nodeDeviceGet({
                 deviceXmlObject = parseNodeDeviceDumpxml(deviceXml);
                 deviceXmlObject.connectionName = connectionName;
 
-                if (deviceXmlObject.path && ["pci", "usb_device"].includes(deviceXmlObject.capability.type)) {
+                if (deviceXmlObject.path && ["pci", "usb_device", "mdev"].includes(deviceXmlObject.capability.type)) {
                     return cockpit.spawn(["udevadm", "info", "--path", deviceXmlObject.path], { err: "message" })
                             .then(output => {
                                 const nodeDev = parseUdevDB(output);
@@ -54,6 +54,8 @@ export function nodeDeviceGet({
                                     deviceXmlObject.class = nodeDev.ID_USB_CLASS_FROM_DATABASE;
                                     deviceXmlObject.busnum = nodeDev.BUSNUM;
                                     deviceXmlObject.devnum = nodeDev.DEVNUM;
+                                } else if (nodeDev && nodeDev.SUBSYSTEM === "mdev") {
+                                    deviceXmlObject.class = nodeDev.DRIVER;
                                 }
 
                                 return store.dispatch(updateOrAddNodeDevice(deviceXmlObject));

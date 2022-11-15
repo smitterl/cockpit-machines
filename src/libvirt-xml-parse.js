@@ -88,6 +88,14 @@ export function getHostDevElemBySource(domxml, source) {
                 if (bus && domain && slot && func && domain === source.domain && slot === source.slot && bus === source.bus && func === source.func)
                     return new XMLSerializer().serializeToString(hostdevElem);
             }
+
+            // MDEV device
+            if (type === "mdev" && "uuid" in source) {
+                const uuid = addressElem.getAttribute('uuid');
+
+                if (uuid && uuid === source.uuid)
+                    return new XMLSerializer().serializeToString(hostdevElem);
+            }
         }
     }
 }

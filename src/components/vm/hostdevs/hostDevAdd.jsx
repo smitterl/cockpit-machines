@@ -60,6 +60,11 @@ const TypeRow = ({ idPrefix, type, setType }) => {
                    label={_("PCI")}
                    isChecked={type === "pci"}
                    onChange={() => setType("pci")} />
+            <Radio id="mdev"
+                   name="type"
+                   label={_("MDEV")}
+                   isChecked={type === "mdev"}
+                   onChange={() => setType("mdev")} />
         </FormGroup>
     );
 };
@@ -73,7 +78,7 @@ function devicesHaveAChild(selectableDevices) {
     });
 
     Object.values(all).forEach(item => {
-        if (item.parent && item.parent !== "computer" && (item.capability.type === "usb_device" || item.capability.type === "pci")) {
+        if (item.parent && item.parent !== "computer" && (item.capability.type === "usb_device" || item.capability.type === "pci" || item.capability.type === "mdev")) {
             all[item.parent].hasChildren = true;
         }
     });
@@ -102,8 +107,13 @@ const DevRow = ({ idPrefix, type, selectableDevices, setSelectableDevices }) => 
             func = func.toString(16).padStart(1, '0');
 
             cells.push(getOptionalValue(`${domain}:${bus}:${slot}.${func}`, `${id}-slot`, _("Slot")));
-        }
+        } else if (nodeDev.capability.type === "mdev") {
+            const type = "bogus"; // nodeDev.type.id;
+            const uuid = nodeDev.capability.uuid;
 
+            cells.push(getOptionalValue(type, `${id}-type`, _("Type")));
+            cells.push(getOptionalValue(uuid, `${id}-type`, _("UUID")));
+        }
         return cells;
     }
 
@@ -135,8 +145,9 @@ const DevRow = ({ idPrefix, type, selectableDevices, setSelectableDevices }) => 
                            selected: dev.selected,
                            disableSelection: dev.nodeDev.hasChildren,
                            cells: [
-                               dev.nodeDev.capability.product._value || "(" + _("Undefined") + ")",
-                               dev.nodeDev.capability.vendor._value,
+                               /* dev.nodeDev.capability.product._value || "(" + _("Undefined") + ")",
+                                 dev.nodeDev.capability.vendor._value,
+*/
                                { title: <DescriptionList key='source' isHorizontal>{getSource(dev.nodeDev, idx)}</DescriptionList> }
                            ]
                        };

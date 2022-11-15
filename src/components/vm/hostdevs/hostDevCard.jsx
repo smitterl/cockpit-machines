@@ -41,14 +41,14 @@ const _ = cockpit.gettext;
 function getClass(hostDev, nodeDevices) {
     const nodeDev = findMatchingNodeDevices(hostDev, nodeDevices)[0];
 
-    if (nodeDev && (["usb_device", "pci"].includes(nodeDev.capability.type)))
+    if (nodeDev && (["usb_device", "pci", "mdev"].includes(nodeDev.capability.type)))
         return nodeDev.class;
 }
 
 function getProduct(hostDev, nodeDevices) {
     const nodeDev = findMatchingNodeDevices(hostDev, nodeDevices)[0];
 
-    if (["usb", "pci"].includes(hostDev.type)) {
+    if (["usb", "pci", "mdev"].includes(hostDev.type)) {
         if (nodeDev)
             return nodeDev.capability.product._value;
         else if (hostDev.type === "usb")
@@ -78,6 +78,17 @@ function getVendor(hostDev, nodeDevices) {
             return nodeDev.capability.vendor._value;
         else if (hostDev.type === "usb")
             return hostDev.source.vendor.id;
+    }
+}
+
+function getModel(hostDev, nodeDevices) {
+    const nodeDev = findMatchingNodeDevices(hostDev, nodeDevices)[0];
+
+    if (["mdev"].includes(hostDev.type)) {
+        if (nodeDev)
+            return nodeDev.capability.type.id._value;
+        else if (hostDev.type === "mdev")
+            return hostDev.model;
     }
 }
 
@@ -251,6 +262,13 @@ export const VmHostDevCard = ({ vm, nodeDevices, config }) => {
                         objectDescription.push({ name: _("Device"), value: source.device });
                         objectDescription.push({ name: _("Bus"), value: source.bus });
                     }
+                } else if (hostdev.type == "mdev") {
+                    objectDescription = [
+                        { name: _("MODEL"), value: getModel(hostdev, nodeDevices) },
+                    ];
+                    if (source) {
+                        objectDescription.push({ name: _("UUID"), value: source.uuid });
+                    }
                 }
 
                 const deleteNICAction = (
@@ -271,7 +289,7 @@ export const VmHostDevCard = ({ vm, nodeDevices, config }) => {
                                           }} />
                 );
 
-                return ["usb", "pci"].includes(hostdev.type)
+                return ["usb", "pci", "mdev"].includes(hostdev.type)
                     ? <div className='machines-listing-actions'>
                         {deleteNICAction}
                     </div>

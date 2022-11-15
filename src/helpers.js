@@ -844,6 +844,10 @@ export function getHostDevSourceObject(dev) {
         const product = dev.source.product.id;
 
         source = { vendor, product, bus, device };
+    } else if (dev.type === "mdev") {
+        const uuid = dev.source.uuid;
+
+        source = { uuid };
     } else {
         console.warn(`getHostDevSourceObject: unsupport device type '${dev.type}'`);
     }
